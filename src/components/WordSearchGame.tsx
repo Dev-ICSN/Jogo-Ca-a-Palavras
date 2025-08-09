@@ -56,10 +56,55 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
   };
 
   const handleMouseEnter = (rowIndex: number, colIndex: number) => {
-    if (isSelecting) {
-      const lastSelectedCell = selectedCells[selectedCells.length - 1];
-      if (lastSelectedCell && (lastSelectedCell[0] !== rowIndex || lastSelectedCell[1] !== colIndex)) {
-        setSelectedCells((prev) => [...prev, [rowIndex, colIndex]]);
+    if (isSelecting && selectedCells.length > 0) {
+      const [startRow, startCol] = selectedCells[0];
+      const endRow = rowIndex;
+      const endCol = colIndex;
+
+      const newSelectedCells: [number, number][] = [];
+      let isValidPath = true;
+
+      // Determine the direction vector
+      const dr = endRow - startRow;
+      const dc = endCol - startCol;
+
+      // Check for horizontal, vertical, or diagonal
+      if (dr === 0 && dc === 0) {
+        // Same cell, just keep the start cell
+        newSelectedCells.push([startRow, startCol]);
+      } else if (dr === 0) { // Horizontal
+        const stepCol = Math.sign(dc);
+        for (let c = startCol; (stepCol > 0 ? c <= endCol : c >= endCol); c += stepCol) {
+          newSelectedCells.push([startRow, c]);
+        }
+      } else if (dc === 0) { // Vertical
+        const stepRow = Math.sign(dr);
+        for (let r = startRow; (stepRow > 0 ? r <= endRow : r >= endRow); r += stepRow) {
+          newSelectedCells.push([r, startCol]);
+        }
+      } else if (Math.abs(dr) === Math.abs(dc)) { // Diagonal
+        const stepRow = Math.sign(dr);
+        const stepCol = Math.sign(dc);
+        let r = startRow;
+        let c = startCol;
+        while (true) {
+          newSelectedCells.push([r, c]);
+          if (r === endRow && c === endCol) {
+            break;
+          }
+          r += stepRow;
+          c += stepCol;
+        }
+      } else {
+        // Not a straight line (horizontal, vertical, or 45-degree diagonal)
+        isValidPath = false;
+      }
+
+      if (isValidPath) {
+        setSelectedCells(newSelectedCells);
+      } else {
+        // If the path is not valid, only keep the starting cell selected
+        setSelectedCells([selectedCells[0]]);
       }
     }
   };
@@ -78,54 +123,15 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
       return;
     }
 
-    // Determine the direction from the first two selected cells
-    const [startRow, startCol] = selectedCells[0];
-    const [secondRow, secondCol] = selectedCells[1];
-
-    const initialStepRow = secondRow - startRow;
-    const initialStepCol = secondCol - startCol;
-
-    // Validate initial step: must be -1, 0, or 1 for both row and column, and not (0,0)
-    if (
-      Math.abs(initialStepRow) > 1 ||
-      Math.abs(initialStepCol) > 1 ||
-      (initialStepRow === 0 && initialStepCol === 0)
-    ) {
-      showError("Seleção inválida. Por favor, selecione em linha reta.");
-      return;
-    }
-
     let selectedWord = "";
-    let isValidLine = true;
-
-    // Reconstruct the word and validate linearity
-    for (let i = 0; i < selectedCells.length; i++) {
-      const [currentRow, currentCol] = selectedCells[i];
-
-      // Check if the current cell follows the established linear path
-      if (i > 0) {
-        const [prevRow, prevCol] = selectedCells[i - 1];
-        if (
-          currentRow !== prevRow + initialStepRow ||
-          currentCol !== prevCol + initialStepCol
-        ) {
-          isValidLine = false;
-          break;
-        }
-      }
-
-      // Add character to selected word
-      if (currentRow >= 0 && currentRow < rows && currentCol >= 0 && currentCol < cols) {
-        selectedWord += grid[currentRow][currentCol];
+    for (const [r, c] of selectedCells) {
+      // Ensure cells are within bounds
+      if (r >= 0 && r < rows && c >= 0 && c < cols) {
+        selectedWord += grid[r][c];
       } else {
-        isValidLine = false; 
-        break;
+        showError("Erro na seleção: célula fora dos limites.");
+        return;
       }
-    }
-
-    if (!isValidLine) {
-      showError("Seleção inválida. Por favor, selecione em linha reta.");
-      return;
     }
 
     const normalizedSelectedWord = selectedWord.toUpperCase();
@@ -143,7 +149,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
       // Remove found word from wordsToFind list by value
       setWordsToFind((prev) => prev.filter((w) => w !== foundWord));
     } else {
-      showError("Palavra não encontrada ou seleção incorreta.");
+      showError("Palavra não encontrada.");
     }
   };
 
