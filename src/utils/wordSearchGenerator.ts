@@ -181,17 +181,25 @@ export function generateWordSearch(
 }
 
 // Predefined word lists for difficulty levels
-export const easyWords: string[] = [
+export const superEasyWords: string[] = [
   "SOL",
   "MAR",
   "CASA",
   "GATO",
   "LUA",
+];
+
+export const easyWords: string[] = [
   "PAO",
   "FLOR",
   "LIVRO",
   "ARTE",
   "AMOR",
+  "MESA",
+  "CAMA",
+  "ROSA",
+  "PEIXE",
+  "PATO",
 ];
 
 export const hardWords: string[] = [

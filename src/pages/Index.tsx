@@ -9,7 +9,7 @@ import { getRanking, addRankingEntry, clearRanking, RankingEntry } from "@/utils
 const Index = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [playerName, setPlayerName] = useState("");
-  const [difficulty, setDifficulty] = useState<"easy" | "hard">("easy");
+  const [difficulty, setDifficulty] = useState<"super-easy" | "easy" | "hard">("easy");
   const [ranking, setRanking] = useState<RankingEntry[]>([]);
 
   useEffect(() => {
@@ -17,7 +17,7 @@ const Index = () => {
     setRanking(getRanking());
   }, []);
 
-  const handleStartGame = (name: string, selectedDifficulty: "easy" | "hard") => {
+  const handleStartGame = (name: string, selectedDifficulty: "super-easy" | "easy" | "hard") => {
     setPlayerName(name);
     setDifficulty(selectedDifficulty);
     setGameStarted(true);

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   generateWordSearch,
+  superEasyWords,
   easyWords,
   hardWords,
   Grid,
@@ -14,7 +15,7 @@ import { showSuccess, showError } from "@/utils/toast";
 
 interface WordSearchGameProps {
   playerName: string;
-  difficulty: "easy" | "hard";
+  difficulty: "super-easy" | "easy" | "hard";
   onRestartGame: () => void;
   onGameEnd: (timeInSeconds: number) => void; // New prop for game end
 }
@@ -34,9 +35,34 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerIntervalRef = useRef<number | null>(null); // Renamed ref for clarity
 
-  const rows = difficulty === "easy" ? 12 : 18;
-  const cols = difficulty === "easy" ? 12 : 18;
-  const initialWords = difficulty === "easy" ? easyWords : hardWords;
+  const getGridSize = () => {
+    switch (difficulty) {
+      case "super-easy":
+        return { rows: 8, cols: 8 };
+      case "easy":
+        return { rows: 12, cols: 12 };
+      case "hard":
+        return { rows: 18, cols: 18 };
+      default:
+        return { rows: 12, cols: 12 }; // Default to easy
+    }
+  };
+
+  const getInitialWords = () => {
+    switch (difficulty) {
+      case "super-easy":
+        return superEasyWords;
+      case "easy":
+        return easyWords;
+      case "hard":
+        return hardWords;
+      default:
+        return easyWords; // Default to easy
+    }
+  };
+
+  const { rows, cols } = getGridSize();
+  const initialWords = getInitialWords();
 
   useEffect(() => {
     initializeGame();
@@ -191,12 +217,21 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
 
   const isWordFound = (word: string) => foundWords.includes(word.toUpperCase());
 
+  const getDifficultyText = (diff: "super-easy" | "easy" | "hard") => {
+    switch (diff) {
+      case "super-easy": return "Super Fácil";
+      case "easy": return "Fácil";
+      case "hard": return "Difícil";
+      default: return "";
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-4">
       <Card className="w-full max-w-4xl shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold text-gray-800">
-            Caça-Palavras - Nível {difficulty === "easy" ? "Fácil" : "Difícil"}
+            Caça-Palavras - Nível {getDifficultyText(difficulty)}
           </CardTitle>
           <p className="text-gray-600 mt-2">
             Olá, {playerName}! Encontre as palavras abaixo:

@@ -1,6 +1,6 @@
 export interface RankingEntry {
   playerName: string;
-  difficulty: "easy" | "hard";
+  difficulty: "super-easy" | "easy" | "hard";
   timeInSeconds: number;
   date: string;
 }

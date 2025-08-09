@@ -11,14 +11,14 @@ import Ranking from "@/components/Ranking"; // Import Ranking component
 import { RankingEntry } from "@/utils/rankingStorage"; // Import RankingEntry type
 
 interface WelcomeScreenProps {
-  onStartGame: (playerName: string, difficulty: "easy" | "hard") => void;
+  onStartGame: (playerName: string, difficulty: "super-easy" | "easy" | "hard") => void;
   ranking: RankingEntry[]; // Add ranking prop
   onClearRanking: () => void; // New prop for clearing ranking
 }
 
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking, onClearRanking }) => {
   const [playerName, setPlayerName] = useState<string>("");
-  const [difficulty, setDifficulty] = useState<"easy" | "hard">("easy"); // Default to easy
+  const [difficulty, setDifficulty] = useState<"super-easy" | "easy" | "hard">("easy"); // Default to easy
 
   const handleStartGame = () => {
     if (playerName.trim()) {
@@ -63,9 +63,13 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking, onC
             </Label>
             <RadioGroup
               defaultValue="easy"
-              onValueChange={(value: "easy" | "hard") => setDifficulty(value)}
+              onValueChange={(value: "super-easy" | "easy" | "hard") => setDifficulty(value)}
               className="flex justify-center space-x-4"
             >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="super-easy" id="difficulty-super-easy" />
+                <Label htmlFor="difficulty-super-easy">Super Fácil (5 palavras)</Label>
+              </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="easy" id="difficulty-easy" />
                 <Label htmlFor="difficulty-easy">Fácil (10 palavras)</Label>
