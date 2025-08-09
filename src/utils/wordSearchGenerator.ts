@@ -154,7 +154,7 @@ export function generateWordSearch(
     const upperWord = word.toUpperCase();
     let placed = false;
     let attempts = 0;
-    const maxAttempts = rows * cols * directions.length * 2; // Increased attempts
+    const maxAttempts = rows * cols * directions.length * 5; // Increased attempts from 2 to 5
 
     while (!placed && attempts < maxAttempts) {
       const randomRow = Math.floor(Math.random() * rows);
