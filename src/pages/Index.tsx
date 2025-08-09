@@ -3,17 +3,24 @@
 import React, { useState } from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import WelcomeScreen from "@/components/WelcomeScreen";
+import WordSearchGame from "@/components/WordSearchGame"; // Import the new game component
 
 const Index = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [playerName, setPlayerName] = useState("");
+  const [difficulty, setDifficulty] = useState<"easy" | "hard">("easy"); // State for difficulty
 
-  const handleStartGame = (name: string) => {
+  const handleStartGame = (name: string, selectedDifficulty: "easy" | "hard") => {
     setPlayerName(name);
+    setDifficulty(selectedDifficulty);
     setGameStarted(true);
-    // Aqui você pode adicionar a lógica para navegar para a tela do jogo
-    // ou renderizar o componente do jogo diretamente.
-    console.log(`Jogo iniciado para: ${name}`);
+    console.log(`Jogo iniciado para: ${name} no nível ${selectedDifficulty}`);
+  };
+
+  const handleRestartGame = () => {
+    setGameStarted(false);
+    setPlayerName("");
+    setDifficulty("easy"); // Reset difficulty to default
   };
 
   return (
@@ -21,11 +28,11 @@ const Index = () => {
       {!gameStarted ? (
         <WelcomeScreen onStartGame={handleStartGame} />
       ) : (
-        <div className="flex-grow flex items-center justify-center bg-gray-100 p-4">
-          <h1 className="text-4xl font-bold text-gray-800">
-            Olá, {playerName}! O jogo começará em breve...
-          </h1>
-        </div>
+        <WordSearchGame
+          playerName={playerName}
+          difficulty={difficulty}
+          onRestartGame={handleRestartGame}
+        />
       )}
       <MadeWithDyad />
     </div>

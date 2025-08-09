@@ -5,18 +5,21 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { showSuccess } from "@/utils/toast";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface WelcomeScreenProps {
-  onStartGame: (playerName: string) => void;
+  onStartGame: (playerName: string, difficulty: "easy" | "hard") => void;
 }
 
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame }) => {
   const [playerName, setPlayerName] = useState<string>("");
+  const [difficulty, setDifficulty] = useState<"easy" | "hard">("easy"); // Default to easy
 
   const handleStartGame = () => {
     if (playerName.trim()) {
       showSuccess(`Bem-vindo, ${playerName}!`);
-      onStartGame(playerName.trim());
+      onStartGame(playerName.trim(), difficulty);
     } else {
       showSuccess("Por favor, digite seu nome para começar.");
     }
@@ -33,9 +36,9 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame }) => {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="playerName" className="block text-sm font-medium text-gray-700">
+            <Label htmlFor="playerName" className="block text-sm font-medium text-gray-700">
               Digite seu nome:
-            </label>
+            </Label>
             <Input
               id="playerName"
               type="text"
@@ -49,6 +52,25 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame }) => {
                 }
               }}
             />
+          </div>
+          <div className="space-y-2">
+            <Label className="block text-sm font-medium text-gray-700">
+              Selecione a dificuldade:
+            </Label>
+            <RadioGroup
+              defaultValue="easy"
+              onValueChange={(value: "easy" | "hard") => setDifficulty(value)}
+              className="flex justify-center space-x-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="easy" id="difficulty-easy" />
+                <Label htmlFor="difficulty-easy">Fácil (10 palavras)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="hard" id="difficulty-hard" />
+                <Label htmlFor="difficulty-hard">Difícil (25 palavras)</Label>
+              </div>
+            </RadioGroup>
           </div>
           <Button
             onClick={handleStartGame}
