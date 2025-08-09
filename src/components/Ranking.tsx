@@ -18,7 +18,7 @@ interface RankingProps {
 
 const Ranking: React.FC<RankingProps> = ({ ranking }) => {
   return (
-    <Card className="w-full max-w-md shadow-lg mt-6">
+    <Card className="w-full h-full shadow-lg">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold text-gray-800">Melhores Tempos</CardTitle>
       </CardHeader>

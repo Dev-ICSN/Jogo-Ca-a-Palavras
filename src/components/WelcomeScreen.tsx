@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,19 +9,21 @@ import { showSuccess } from "@/utils/toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import Ranking from "@/components/Ranking";
+import PrizeList from "@/components/PrizeList";
 import { RankingEntry } from "@/utils/rankingStorage";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface WelcomeScreenProps {
   onStartGame: (playerName: string, difficulty: "super-easy" | "easy" | "hard", theme: "kitchen" | "home" | "work" | "random") => void;
   ranking: RankingEntry[];
+  prizes: string[];
   onClearRanking: () => void;
 }
 
-const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking, onClearRanking }) => {
+const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking, prizes, onClearRanking }) => {
   const [playerName, setPlayerName] = useState<string>("");
   const [difficulty, setDifficulty] = useState<"super-easy" | "easy" | "hard">("easy");
-  const [theme, setTheme] = useState<"kitchen" | "home" | "work" | "random">("random"); // Default to random
+  const [theme, setTheme] = useState<"kitchen" | "home" | "work" | "random">("random");
 
   const handleStartGame = () => {
     if (playerName.trim()) {
@@ -106,13 +109,27 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking, onC
           </Button>
         </CardContent>
       </Card>
-      <Ranking ranking={ranking} />
-      <Button
-        onClick={onClearRanking}
-        className="mt-4 py-2 px-6 text-md bg-red-500 hover:bg-red-600 text-white rounded-md shadow-md transition-colors duration-200"
-      >
-        Resetar Ranking
-      </Button>
+
+      <div className="w-full max-w-4xl mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Ranking ranking={ranking} />
+        <PrizeList prizes={prizes} />
+      </div>
+
+      <div className="flex gap-4 mt-4">
+        <Link to="/prizes">
+          <Button
+            className="py-2 px-6 text-md bg-green-500 hover:bg-green-600 text-white rounded-md shadow-md transition-colors duration-200"
+          >
+            Cadastrar Prêmios
+          </Button>
+        </Link>
+        <Button
+          onClick={onClearRanking}
+          className="py-2 px-6 text-md bg-red-500 hover:bg-red-600 text-white rounded-md shadow-md transition-colors duration-200"
+        >
+          Resetar Ranking
+        </Button>
+      </div>
     </div>
   );
 };

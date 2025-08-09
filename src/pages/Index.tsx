@@ -5,26 +5,29 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import WelcomeScreen from "@/components/WelcomeScreen";
 import WordSearchGame from "@/components/WordSearchGame";
 import { getRanking, addRankingEntry, clearRanking, RankingEntry } from "@/utils/rankingStorage";
+import { getPrizes } from "@/utils/prizeStorage";
 
 const Index = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [playerName, setPlayerName] = useState("");
   const [difficulty, setDifficulty] = useState<"super-easy" | "easy" | "hard">("easy");
-  const [theme, setTheme] = useState<"kitchen" | "home" | "work" | "random">("random"); // New state for theme
+  const [theme, setTheme] = useState<"kitchen" | "home" | "work" | "random">("random");
   const [ranking, setRanking] = useState<RankingEntry[]>([]);
+  const [prizes, setPrizes] = useState<string[]>([]);
 
   useEffect(() => {
     setRanking(getRanking());
+    setPrizes(getPrizes());
   }, []);
 
   const handleStartGame = (
     name: string,
     selectedDifficulty: "super-easy" | "easy" | "hard",
-    selectedTheme: "kitchen" | "home" | "work" | "random" // New parameter
+    selectedTheme: "kitchen" | "home" | "work" | "random"
   ) => {
     setPlayerName(name);
     setDifficulty(selectedDifficulty);
-    setTheme(selectedTheme); // Set the selected theme
+    setTheme(selectedTheme);
     setGameStarted(true);
     console.log(`Jogo iniciado para: ${name} no nível ${selectedDifficulty} com tema ${selectedTheme}`);
   };
@@ -44,8 +47,9 @@ const Index = () => {
     setGameStarted(false);
     setPlayerName("");
     setDifficulty("easy");
-    setTheme("random"); // Reset theme to default
+    setTheme("random");
     setRanking(getRanking());
+    setPrizes(getPrizes());
   };
 
   const handleClearRanking = () => {
@@ -59,13 +63,14 @@ const Index = () => {
         <WelcomeScreen
           onStartGame={handleStartGame}
           ranking={ranking}
+          prizes={prizes}
           onClearRanking={handleClearRanking}
         />
       ) : (
         <WordSearchGame
           playerName={playerName}
           difficulty={difficulty}
-          theme={theme} // Pass the theme prop
+          theme={theme}
           onRestartGame={handleRestartGame}
           onGameEnd={handleGameEnd}
         />
