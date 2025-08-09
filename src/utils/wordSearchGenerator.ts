@@ -131,10 +131,6 @@ export function generateWordSearch(
   rows: number,
   cols: number,
 ): { grid: Grid; placedWords: string[] } {
-  let grid: Grid = Array(rows)
-    .fill(null)
-    .map(() => Array(cols).fill(""));
-
   const directions: Direction[] = [
     "horizontal",
     "horizontal-reverse",
@@ -146,43 +142,77 @@ export function generateWordSearch(
     "diagonal-up-left",
   ];
 
-  // Sort words by length descending to place longer words first
   const sortedWords = [...words].sort((a, b) => b.length - a.length);
-  const placedWords: string[] = [];
+  const maxGridGenerationAttempts = 100; // Limit attempts to generate a full grid
 
-  for (const word of sortedWords) {
-    const upperWord = word.toUpperCase();
-    let placed = false;
-    let attempts = 0;
-    const maxAttempts = rows * cols * directions.length * 5; // Increased attempts from 2 to 5
+  let finalGrid: Grid = Array(rows).fill(null).map(() => Array(cols).fill(""));
+  let finalPlacedWords: string[] = [];
 
-    while (!placed && attempts < maxAttempts) {
-      const randomRow = Math.floor(Math.random() * rows);
-      const randomCol = Math.floor(Math.random() * cols);
-      const randomDirection =
-        directions[Math.floor(Math.random() * directions.length)];
+  for (let genAttempt = 0; genAttempt < maxGridGenerationAttempts; genAttempt++) {
+    let currentGrid: Grid = Array(rows)
+      .fill(null)
+      .map(() => Array(cols).fill(""));
+    let currentPlacedWords: string[] = [];
+    let allWordsPlacedInThisAttempt = true;
 
-      if (
-        canPlaceWord(grid, upperWord, randomRow, randomCol, randomDirection)
-      ) {
-        placeWord(grid, upperWord, randomRow, randomCol, randomDirection);
-        placedWords.push(word); // Store original word
-        placed = true;
+    for (const word of sortedWords) {
+      const upperWord = word.toUpperCase();
+      let placed = false;
+      let attempts = 0;
+      const maxPlacementAttempts = rows * cols * directions.length * 5;
+
+      while (!placed && attempts < maxPlacementAttempts) {
+        const randomRow = Math.floor(Math.random() * rows);
+        const randomCol = Math.floor(Math.random() * cols);
+        const randomDirection =
+          directions[Math.floor(Math.random() * directions.length)];
+
+        if (
+          canPlaceWord(currentGrid, upperWord, randomRow, randomCol, randomDirection)
+        ) {
+          placeWord(currentGrid, upperWord, randomRow, randomCol, randomDirection);
+          currentPlacedWords.push(word);
+          placed = true;
+        }
+        attempts++;
       }
-      attempts++;
+      if (!placed) {
+        allWordsPlacedInThisAttempt = false;
+        break; // This grid generation attempt failed for this word
+      }
+    }
+
+    if (allWordsPlacedInThisAttempt) {
+      // Fill remaining empty cells with random letters
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (currentGrid[r][c] === "") {
+            currentGrid[r][c] = getRandomLetter();
+          }
+        }
+      }
+      return { grid: currentGrid, placedWords: currentPlacedWords };
+    } else {
+      // If not all words were placed, store this as the best effort so far
+      // if it placed more words than previous best.
+      if (currentPlacedWords.length > finalPlacedWords.length) {
+        finalGrid = currentGrid;
+        finalPlacedWords = currentPlacedWords;
+      }
     }
   }
 
-  // Fill remaining empty cells with random letters
+  // If after many attempts, a full grid couldn't be generated,
+  // fill the best effort grid with random letters and return it.
+  console.warn("Could not place all words after multiple grid generation attempts. Returning the best partial grid found.");
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      if (grid[r][c] === "") {
-        grid[r][c] = getRandomLetter();
+      if (finalGrid[r][c] === "") {
+        finalGrid[r][c] = getRandomLetter();
       }
     }
   }
-
-  return { grid, placedWords };
+  return { grid: finalGrid, placedWords: finalPlacedWords };
 }
 
 // Predefined word lists for difficulty levels (now representing number of words)
