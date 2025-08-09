@@ -37,7 +37,7 @@ const Ranking: React.FC<RankingProps> = ({ ranking }) => {
             </TableHeader>
             <TableBody>
               {ranking.map((entry, index) => (
-                <TableRow key={index}>
+                <TableRow key={`${entry.playerName}-${entry.difficulty}-${index}`}>
                   <TableCell className="font-medium">{index + 1}º</TableCell>
                   <TableCell>{entry.playerName}</TableCell>
                   <TableCell>{entry.difficulty === "easy" ? "Fácil" : "Difícil"}</TableCell>

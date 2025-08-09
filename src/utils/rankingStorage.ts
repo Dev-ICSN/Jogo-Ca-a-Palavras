@@ -18,8 +18,26 @@ export function getRanking(): RankingEntry[] {
 }
 
 export function addRankingEntry(newEntry: RankingEntry): void {
-  const currentRanking = getRanking();
-  const updatedRanking = [...currentRanking, newEntry]
+  let currentRanking = getRanking();
+
+  // Check if an entry for this player and difficulty already exists
+  const existingIndex = currentRanking.findIndex(
+    (entry) =>
+      entry.playerName === newEntry.playerName &&
+      entry.difficulty === newEntry.difficulty
+  );
+
+  if (existingIndex !== -1) {
+    // If existing, update only if new time is better
+    if (newEntry.timeInSeconds < currentRanking[existingIndex].timeInSeconds) {
+      currentRanking[existingIndex] = newEntry;
+    }
+  } else {
+    // If not existing, add new entry
+    currentRanking.push(newEntry);
+  }
+
+  const updatedRanking = currentRanking
     .sort((a, b) => a.timeInSeconds - b.timeInSeconds) // Sort by time (lower is better)
     .slice(0, 5); // Keep only the top 5
 

@@ -32,7 +32,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
   const [isSelecting, setIsSelecting] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const timerRef = useRef<number | null>(null);
+  const timerIntervalRef = useRef<number | null>(null); // Renamed ref for clarity
 
   const rows = difficulty === "easy" ? 12 : 18;
   const cols = difficulty === "easy" ? 12 : 18;
@@ -41,32 +41,36 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
   useEffect(() => {
     initializeGame();
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
       }
     };
-  }, [difficulty]);
+  }, [difficulty]); // Re-initialize game when difficulty changes
 
   useEffect(() => {
-    if (foundWords.length > 0 && foundWords.length === initialWords.length) {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-      if (startTime !== null) {
-        const finalTime = (Date.now() - startTime) / 1000;
-        setElapsedTime(finalTime);
-        onGameEnd(finalTime); // Notify parent about game end and time
-      }
-    } else if (startTime !== null && foundWords.length < initialWords.length) {
-      // Start or continue timer if game is in progress
-      if (!timerRef.current) {
-        timerRef.current = window.setInterval(() => {
-          setElapsedTime((Date.now() - startTime) / 1000);
-        }, 100);
-      }
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current); // Clear any existing timer
     }
-  }, [foundWords, initialWords.length, startTime, onGameEnd]);
+
+    if (startTime !== null && foundWords.length < initialWords.length) {
+      // Start timer if game is active
+      timerIntervalRef.current = window.setInterval(() => {
+        setElapsedTime((Date.now() - startTime) / 1000);
+      }, 100);
+    } else if (foundWords.length === initialWords.length && startTime !== null) {
+      // Game ended, calculate final time
+      const finalTime = (Date.now() - startTime) / 1000;
+      setElapsedTime(finalTime);
+      onGameEnd(finalTime);
+    }
+
+    return () => {
+      // Cleanup on unmount or re-run of effect
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, [startTime, foundWords.length, initialWords.length, onGameEnd]); // Dependencies for this effect
 
   const initializeGame = () => {
     const { grid: newGrid, placedWords } = generateWordSearch(
@@ -79,14 +83,8 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
     setFoundWords([]);
     setSelectedCells([]);
     setIsSelecting(false);
-    setStartTime(Date.now()); // Start timer
-    setElapsedTime(0);
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-    timerRef.current = window.setInterval(() => {
-      setElapsedTime((Date.now() - (startTime || Date.now())) / 1000);
-    }, 100);
+    setElapsedTime(0); // Reset elapsed time
+    setStartTime(Date.now()); // This will trigger the useEffect above to start the timer
   };
 
   const handleMouseDown = (rowIndex: number, colIndex: number) => {
