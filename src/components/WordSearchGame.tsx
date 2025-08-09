@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   generateWordSearch,
   easyWords,
@@ -16,38 +16,77 @@ interface WordSearchGameProps {
   playerName: string;
   difficulty: "easy" | "hard";
   onRestartGame: () => void;
+  onGameEnd: (timeInSeconds: number) => void; // New prop for game end
 }
 
 const WordSearchGame: React.FC<WordSearchGameProps> = ({
   playerName,
   difficulty,
   onRestartGame,
+  onGameEnd,
 }) => {
   const [grid, setGrid] = useState<Grid>([]);
   const [wordsToFind, setWordsToFind] = useState<string[]>([]);
   const [foundWords, setFoundWords] = useState<string[]>([]);
   const [selectedCells, setSelectedCells] = useState<[number, number][]>([]);
   const [isSelecting, setIsSelecting] = useState(false);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const timerRef = useRef<number | null>(null);
 
   const rows = difficulty === "easy" ? 12 : 18;
   const cols = difficulty === "easy" ? 12 : 18;
-  const words = difficulty === "easy" ? easyWords : hardWords;
+  const initialWords = difficulty === "easy" ? easyWords : hardWords;
 
   useEffect(() => {
     initializeGame();
-  }, [difficulty]); // Re-initialize if difficulty changes
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [difficulty]);
+
+  useEffect(() => {
+    if (foundWords.length > 0 && foundWords.length === initialWords.length) {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      if (startTime !== null) {
+        const finalTime = (Date.now() - startTime) / 1000;
+        setElapsedTime(finalTime);
+        onGameEnd(finalTime); // Notify parent about game end and time
+      }
+    } else if (startTime !== null && foundWords.length < initialWords.length) {
+      // Start or continue timer if game is in progress
+      if (!timerRef.current) {
+        timerRef.current = window.setInterval(() => {
+          setElapsedTime((Date.now() - startTime) / 1000);
+        }, 100);
+      }
+    }
+  }, [foundWords, initialWords.length, startTime, onGameEnd]);
 
   const initializeGame = () => {
     const { grid: newGrid, placedWords } = generateWordSearch(
-      words,
+      initialWords,
       rows,
       cols,
     );
     setGrid(newGrid);
-    setWordsToFind(placedWords.map((word) => word.toUpperCase())); // Ensure words to find are uppercase
+    setWordsToFind(placedWords.map((word) => word.toUpperCase()));
     setFoundWords([]);
     setSelectedCells([]);
     setIsSelecting(false);
+    setStartTime(Date.now()); // Start timer
+    setElapsedTime(0);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    timerRef.current = window.setInterval(() => {
+      setElapsedTime((Date.now() - (startTime || Date.now())) / 1000);
+    }, 100);
   };
 
   const handleMouseDown = (rowIndex: number, colIndex: number) => {
@@ -64,13 +103,10 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
       const newSelectedCells: [number, number][] = [];
       let isValidPath = true;
 
-      // Determine the direction vector
       const dr = endRow - startRow;
       const dc = endCol - startCol;
 
-      // Check for horizontal, vertical, or diagonal
       if (dr === 0 && dc === 0) {
-        // Same cell, just keep the start cell
         newSelectedCells.push([startRow, startCol]);
       } else if (dr === 0) { // Horizontal
         const stepCol = Math.sign(dc);
@@ -96,14 +132,12 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
           c += stepCol;
         }
       } else {
-        // Not a straight line (horizontal, vertical, or 45-degree diagonal)
         isValidPath = false;
       }
 
       if (isValidPath) {
         setSelectedCells(newSelectedCells);
       } else {
-        // If the path is not valid, only keep the starting cell selected
         setSelectedCells([selectedCells[0]]);
       }
     }
@@ -114,7 +148,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
     if (selectedCells.length > 1) {
       checkSelectedWord();
     }
-    setSelectedCells([]); // Clear selection after checking
+    setSelectedCells([]);
   };
 
   const checkSelectedWord = () => {
@@ -125,7 +159,6 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
 
     let selectedWord = "";
     for (const [r, c] of selectedCells) {
-      // Ensure cells are within bounds
       if (r >= 0 && r < rows && c >= 0 && c < cols) {
         selectedWord += grid[r][c];
       } else {
@@ -146,7 +179,6 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
       const foundWord = wordsToFind[foundIndex];
       setFoundWords((prev) => [...prev, foundWord]);
       showSuccess(`Parabéns! Você encontrou a palavra: ${foundWord}`);
-      // Remove found word from wordsToFind list by value
       setWordsToFind((prev) => prev.filter((w) => w !== foundWord));
     } else {
       showError("Palavra não encontrada.");
@@ -171,6 +203,9 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
           <p className="text-gray-600 mt-2">
             Olá, {playerName}! Encontre as palavras abaixo:
           </p>
+          <p className="text-xl font-semibold text-blue-700 mt-2">
+            Tempo: {elapsedTime.toFixed(1)}s
+          </p>
         </CardHeader>
         <CardContent className="flex flex-col lg:flex-row gap-6">
           <div className="flex-grow grid-container overflow-auto p-2 bg-gray-50 rounded-md shadow-inner">
@@ -181,7 +216,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
               }}
               onMouseLeave={() => {
                 if (isSelecting) {
-                  handleMouseUp(); // End selection if mouse leaves grid
+                  handleMouseUp();
                 }
               }}
             >
@@ -208,10 +243,10 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
           </div>
           <div className="w-full lg:w-1/3 p-4 bg-white rounded-md shadow-md">
             <h3 className="text-xl font-semibold mb-4 text-gray-800">
-              Palavras para Encontrar ({foundWords.length}/{words.length})
+              Palavras para Encontrar ({foundWords.length}/{initialWords.length})
             </h3>
             <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto">
-              {words.map((word, index) => (
+              {initialWords.map((word, index) => (
                 <Badge
                   key={index}
                   variant={isWordFound(word) ? "default" : "secondary"}
@@ -225,10 +260,13 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
                 </Badge>
               ))}
             </div>
-            {foundWords.length === words.length && (
+            {foundWords.length === initialWords.length && (
               <div className="mt-6 text-center">
                 <p className="text-2xl font-bold text-green-600 mb-4">
                   Parabéns, você encontrou todas as palavras!
+                </p>
+                <p className="text-xl text-gray-700 mb-4">
+                  Seu tempo: {elapsedTime.toFixed(2)} segundos
                 </p>
                 <Button onClick={onRestartGame} className="py-2 px-6 text-lg">
                   Jogar Novamente
@@ -238,9 +276,11 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
           </div>
         </CardContent>
       </Card>
-      <Button onClick={onRestartGame} className="mt-6 py-2 px-6 text-lg bg-red-500 hover:bg-red-600 text-white">
-        Reiniciar Jogo
-      </Button>
+      {foundWords.length < initialWords.length && (
+        <Button onClick={onRestartGame} className="mt-6 py-2 px-6 text-lg bg-red-500 hover:bg-red-600 text-white">
+          Reiniciar Jogo
+        </Button>
+      )}
     </div>
   );
 };

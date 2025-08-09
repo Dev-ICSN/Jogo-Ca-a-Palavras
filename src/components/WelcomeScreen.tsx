@@ -7,12 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { showSuccess } from "@/utils/toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import Ranking from "@/components/Ranking"; // Import Ranking component
+import { RankingEntry } from "@/utils/rankingStorage"; // Import RankingEntry type
 
 interface WelcomeScreenProps {
   onStartGame: (playerName: string, difficulty: "easy" | "hard") => void;
+  ranking: RankingEntry[]; // Add ranking prop
 }
 
-const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame }) => {
+const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking }) => {
   const [playerName, setPlayerName] = useState<string>("");
   const [difficulty, setDifficulty] = useState<"easy" | "hard">("easy"); // Default to easy
 
@@ -26,7 +29,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame }) => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold text-gray-800">Caça-Palavras</CardTitle>
@@ -80,6 +83,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame }) => {
           </Button>
         </CardContent>
       </Card>
+      <Ranking ranking={ranking} /> {/* Display the Ranking component */}
     </div>
   );
 };
