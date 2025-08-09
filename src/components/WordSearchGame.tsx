@@ -3,9 +3,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   generateWordSearch,
-  superEasyWords,
-  easyWords,
-  hardWords,
+  superEasyWordsCount,
+  easyWordsCount,
+  hardWordsCount,
+  kitchenWords,
+  homeWords,
+  workWords,
+  allWords,
+  getRandomSubset,
   Grid,
 } from "@/utils/wordSearchGenerator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,13 +21,15 @@ import { showSuccess, showError } from "@/utils/toast";
 interface WordSearchGameProps {
   playerName: string;
   difficulty: "super-easy" | "easy" | "hard";
+  theme: "kitchen" | "home" | "work" | "random"; // New prop for theme
   onRestartGame: () => void;
-  onGameEnd: (timeInSeconds: number) => void; // New prop for game end
+  onGameEnd: (timeInSeconds: number) => void;
 }
 
 const WordSearchGame: React.FC<WordSearchGameProps> = ({
   playerName,
   difficulty,
+  theme, // Destructure new prop
   onRestartGame,
   onGameEnd,
 }) => {
@@ -33,7 +40,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
   const [isSelecting, setIsSelecting] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const timerIntervalRef = useRef<number | null>(null); // Renamed ref for clarity
+  const timerIntervalRef = useRef<number | null>(null);
 
   const getGridSize = () => {
     switch (difficulty) {
@@ -44,25 +51,49 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
       case "hard":
         return { rows: 18, cols: 18 };
       default:
-        return { rows: 12, cols: 12 }; // Default to easy
+        return { rows: 12, cols: 12 };
     }
   };
 
-  const getInitialWords = () => {
+  const getWordsForThemeAndDifficulty = () => {
+    let baseWords: string[];
+    let count: number;
+
+    switch (theme) {
+      case "kitchen":
+        baseWords = kitchenWords;
+        break;
+      case "home":
+        baseWords = homeWords;
+        break;
+      case "work":
+        baseWords = workWords;
+        break;
+      case "random":
+        baseWords = allWords;
+        break;
+      default:
+        baseWords = allWords;
+    }
+
     switch (difficulty) {
       case "super-easy":
-        return superEasyWords;
+        count = superEasyWordsCount;
+        break;
       case "easy":
-        return easyWords;
+        count = easyWordsCount;
+        break;
       case "hard":
-        return hardWords;
+        count = hardWordsCount;
+        break;
       default:
-        return easyWords; // Default to easy
+        count = easyWordsCount;
     }
+
+    return getRandomSubset(baseWords, count);
   };
 
   const { rows, cols } = getGridSize();
-  const initialWords = getInitialWords();
 
   useEffect(() => {
     initializeGame();
@@ -71,36 +102,34 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
         clearInterval(timerIntervalRef.current);
       }
     };
-  }, [difficulty]); // Re-initialize game when difficulty changes
+  }, [difficulty, theme]); // Re-initialize game when difficulty or theme changes
 
   useEffect(() => {
     if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current); // Clear any existing timer
+      clearInterval(timerIntervalRef.current);
     }
 
-    if (startTime !== null && foundWords.length < initialWords.length) {
-      // Start timer if game is active
+    if (startTime !== null && foundWords.length < wordsToFind.length) {
       timerIntervalRef.current = window.setInterval(() => {
         setElapsedTime((Date.now() - startTime) / 1000);
       }, 100);
-    } else if (foundWords.length === initialWords.length && startTime !== null) {
-      // Game ended, calculate final time
+    } else if (foundWords.length === wordsToFind.length && startTime !== null) {
       const finalTime = (Date.now() - startTime) / 1000;
       setElapsedTime(finalTime);
       onGameEnd(finalTime);
     }
 
     return () => {
-      // Cleanup on unmount or re-run of effect
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
       }
     };
-  }, [startTime, foundWords.length, initialWords.length, onGameEnd]); // Dependencies for this effect
+  }, [startTime, foundWords.length, wordsToFind.length, onGameEnd]);
 
   const initializeGame = () => {
+    const words = getWordsForThemeAndDifficulty();
     const { grid: newGrid, placedWords } = generateWordSearch(
-      initialWords,
+      words,
       rows,
       cols,
     );
@@ -109,8 +138,8 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
     setFoundWords([]);
     setSelectedCells([]);
     setIsSelecting(false);
-    setElapsedTime(0); // Reset elapsed time
-    setStartTime(Date.now()); // This will trigger the useEffect above to start the timer
+    setElapsedTime(0);
+    setStartTime(Date.now());
   };
 
   const handleMouseDown = (rowIndex: number, colIndex: number) => {
@@ -226,12 +255,22 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
     }
   };
 
+  const getThemeText = (t: "kitchen" | "home" | "work" | "random") => {
+    switch (t) {
+      case "kitchen": return "Cozinha";
+      case "home": return "Casa";
+      case "work": return "Trabalho";
+      case "random": return "Aleatório";
+      default: return "";
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-4">
       <Card className="w-full max-w-4xl shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold text-gray-800">
-            Caça-Palavras - Nível {getDifficultyText(difficulty)}
+            Caça-Palavras - Nível {getDifficultyText(difficulty)} - Tema: {getThemeText(theme)}
           </CardTitle>
           <p className="text-gray-600 mt-2">
             Olá, {playerName}! Encontre as palavras abaixo:
@@ -276,10 +315,10 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
           </div>
           <div className="w-full lg:w-1/3 p-4 bg-white rounded-md shadow-md">
             <h3 className="text-xl font-semibold mb-4 text-gray-800">
-              Palavras para Encontrar ({foundWords.length}/{initialWords.length})
+              Palavras para Encontrar ({foundWords.length}/{wordsToFind.length})
             </h3>
             <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto">
-              {initialWords.map((word, index) => (
+              {wordsToFind.map((word, index) => (
                 <Badge
                   key={index}
                   variant={isWordFound(word) ? "default" : "secondary"}
@@ -293,7 +332,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
                 </Badge>
               ))}
             </div>
-            {foundWords.length === initialWords.length && (
+            {foundWords.length === wordsToFind.length && (
               <div className="mt-6 text-center">
                 <p className="text-2xl font-bold text-green-600 mb-4">
                   Parabéns, você encontrou todas as palavras!
@@ -309,7 +348,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
           </div>
         </CardContent>
       </Card>
-      {foundWords.length < initialWords.length && (
+      {foundWords.length < wordsToFind.length && (
         <Button onClick={onRestartGame} className="mt-6 py-2 px-6 text-lg bg-red-500 hover:bg-red-600 text-white">
           Reiniciar Jogo
         </Button>

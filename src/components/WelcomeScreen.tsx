@@ -7,23 +7,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { showSuccess } from "@/utils/toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import Ranking from "@/components/Ranking"; // Import Ranking component
-import { RankingEntry } from "@/utils/rankingStorage"; // Import RankingEntry type
+import Ranking from "@/components/Ranking";
+import { RankingEntry } from "@/utils/rankingStorage";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface WelcomeScreenProps {
-  onStartGame: (playerName: string, difficulty: "super-easy" | "easy" | "hard") => void;
-  ranking: RankingEntry[]; // Add ranking prop
-  onClearRanking: () => void; // New prop for clearing ranking
+  onStartGame: (playerName: string, difficulty: "super-easy" | "easy" | "hard", theme: "kitchen" | "home" | "work" | "random") => void;
+  ranking: RankingEntry[];
+  onClearRanking: () => void;
 }
 
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking, onClearRanking }) => {
   const [playerName, setPlayerName] = useState<string>("");
-  const [difficulty, setDifficulty] = useState<"super-easy" | "easy" | "hard">("easy"); // Default to easy
+  const [difficulty, setDifficulty] = useState<"super-easy" | "easy" | "hard">("easy");
+  const [theme, setTheme] = useState<"kitchen" | "home" | "work" | "random">("random"); // Default to random
 
   const handleStartGame = () => {
     if (playerName.trim()) {
       showSuccess(`Bem-vindo, ${playerName}!`);
-      onStartGame(playerName.trim(), difficulty);
+      onStartGame(playerName.trim(), difficulty, theme);
     } else {
       showSuccess("Por favor, digite seu nome para começar.");
     }
@@ -80,6 +82,22 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking, onC
               </div>
             </RadioGroup>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="theme-select" className="block text-sm font-medium text-gray-700">
+              Selecione o tema:
+            </Label>
+            <Select onValueChange={(value: "kitchen" | "home" | "work" | "random") => setTheme(value)} defaultValue="random">
+              <SelectTrigger id="theme-select" className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <SelectValue placeholder="Selecione um tema" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="kitchen">Cozinha</SelectItem>
+                <SelectItem value="home">Casa</SelectItem>
+                <SelectItem value="work">Trabalho</SelectItem>
+                <SelectItem value="random">Aleatório</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <Button
             onClick={handleStartGame}
             className="w-full py-3 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-md transition-colors duration-200"
@@ -88,7 +106,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking, onC
           </Button>
         </CardContent>
       </Card>
-      <Ranking ranking={ranking} /> {/* Display the Ranking component */}
+      <Ranking ranking={ranking} />
       <Button
         onClick={onClearRanking}
         className="mt-4 py-2 px-6 text-md bg-red-500 hover:bg-red-600 text-white rounded-md shadow-md transition-colors duration-200"
