@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   generateWordSearch,
   superEasyWordsCount,
@@ -21,7 +21,7 @@ import { showSuccess, showError } from "@/utils/toast";
 interface WordSearchGameProps {
   playerName: string;
   difficulty: "super-easy" | "easy" | "hard";
-  theme: "kitchen" | "home" | "work" | "random"; // New prop for theme
+  theme: "kitchen" | "home" | "work" | "random";
   onRestartGame: () => void;
   onGameEnd: (timeInSeconds: number) => void;
 }
@@ -29,7 +29,7 @@ interface WordSearchGameProps {
 const WordSearchGame: React.FC<WordSearchGameProps> = ({
   playerName,
   difficulty,
-  theme, // Destructure new prop
+  theme,
   onRestartGame,
   onGameEnd,
 }) => {
@@ -40,7 +40,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
   const [isSelecting, setIsSelecting] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const timerIntervalRef = useRef<number | null>(null);
+  const [endGameHandled, setEndGameHandled] = useState(false);
 
   const getGridSize = () => {
     switch (difficulty) {
@@ -58,7 +58,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
   const getWordsForThemeAndDifficulty = () => {
     let baseWords: string[];
     let count: number;
-    const MAX_WORD_LENGTH_SUPER_EASY = 7; // Define max length for super-easy words
+    const MAX_WORD_LENGTH_SUPER_EASY = 7;
 
     switch (theme) {
       case "kitchen":
@@ -77,7 +77,6 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
         baseWords = allWords;
     }
 
-    // Filter words based on difficulty
     if (difficulty === "super-easy") {
       baseWords = baseWords.filter(word => word.length <= MAX_WORD_LENGTH_SUPER_EASY);
     }
@@ -100,37 +99,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
   };
 
   const { rows, cols } = getGridSize();
-
-  useEffect(() => {
-    initializeGame();
-    return () => {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-      }
-    };
-  }, [difficulty, theme]); // Re-initialize game when difficulty or theme changes
-
-  useEffect(() => {
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-    }
-
-    if (startTime !== null && foundWords.length < wordsToFind.length) {
-      timerIntervalRef.current = window.setInterval(() => {
-        setElapsedTime((Date.now() - startTime) / 1000);
-      }, 100);
-    } else if (wordsToFind.length > 0 && foundWords.length === wordsToFind.length && startTime !== null) {
-      const finalTime = (Date.now() - startTime) / 1000;
-      setElapsedTime(finalTime);
-      onGameEnd(finalTime);
-    }
-
-    return () => {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-      }
-    };
-  }, [startTime, foundWords.length, wordsToFind.length, onGameEnd]);
+  const gameCompleted = wordsToFind.length > 0 && foundWords.length === wordsToFind.length;
 
   const initializeGame = () => {
     const words = getWordsForThemeAndDifficulty();
@@ -146,7 +115,36 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
     setIsSelecting(false);
     setElapsedTime(0);
     setStartTime(Date.now());
+    setEndGameHandled(false);
   };
+
+  useEffect(() => {
+    initializeGame();
+  }, [difficulty, theme]);
+
+  // Effect for managing the timer
+  useEffect(() => {
+    if (startTime === null || gameCompleted) {
+      return; // Don't run timer if game hasn't started or is already over
+    }
+
+    const intervalId = window.setInterval(() => {
+      setElapsedTime((Date.now() - startTime) / 1000);
+    }, 100);
+
+    return () => clearInterval(intervalId);
+  }, [startTime, gameCompleted]);
+
+  // Effect for handling the end of the game
+  useEffect(() => {
+    if (gameCompleted && !endGameHandled && startTime) {
+      setEndGameHandled(true); // Mark as handled to prevent multiple calls
+      const finalTime = (Date.now() - startTime) / 1000;
+      setElapsedTime(finalTime); // Update display with final time
+      onGameEnd(finalTime);
+    }
+  }, [gameCompleted, endGameHandled, startTime, onGameEnd]);
+
 
   const handleMouseDown = (rowIndex: number, colIndex: number) => {
     setIsSelecting(true);
@@ -271,8 +269,6 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
       default: return "";
     }
   };
-
-  const gameCompleted = wordsToFind.length > 0 && foundWords.length === wordsToFind.length;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-4">
