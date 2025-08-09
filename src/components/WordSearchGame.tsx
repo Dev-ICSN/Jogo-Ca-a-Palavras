@@ -265,6 +265,8 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
     }
   };
 
+  const gameCompleted = foundWords.length === wordsToFind.length;
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-4">
       <Card className="w-full max-w-4xl shadow-lg">
@@ -332,7 +334,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
                 </Badge>
               ))}
             </div>
-            {foundWords.length === wordsToFind.length && (
+            {gameCompleted && (
               <div className="mt-6 text-center">
                 <p className="text-2xl font-bold text-green-600 mb-4">
                   Parabéns, você encontrou todas as palavras!
@@ -340,19 +342,17 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
                 <p className="text-xl text-gray-700 mb-4">
                   Seu tempo: {elapsedTime.toFixed(2)} segundos
                 </p>
-                <Button onClick={onRestartGame} className="py-2 px-6 text-lg">
-                  Jogar Novamente
-                </Button>
               </div>
             )}
           </div>
         </CardContent>
       </Card>
-      {foundWords.length < wordsToFind.length && (
-        <Button onClick={onRestartGame} className="mt-6 py-2 px-6 text-lg bg-red-500 hover:bg-red-600 text-white">
-          Reiniciar Jogo
-        </Button>
-      )}
+      <Button
+        onClick={onRestartGame}
+        className="mt-6 py-2 px-6 text-lg bg-red-500 hover:bg-red-600 text-white"
+      >
+        {gameCompleted ? "Voltar ao Menu Principal" : "Reiniciar Jogo"}
+      </Button>
     </div>
   );
 };
