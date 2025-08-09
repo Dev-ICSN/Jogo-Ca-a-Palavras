@@ -17,6 +17,19 @@ interface RankingProps {
 }
 
 const Ranking: React.FC<RankingProps> = ({ ranking }) => {
+  const getDifficultyText = (difficulty: "super-easy" | "easy" | "hard") => {
+    switch (difficulty) {
+      case "super-easy":
+        return "Super Fácil";
+      case "easy":
+        return "Fácil";
+      case "hard":
+        return "Difícil";
+      default:
+        return difficulty;
+    }
+  };
+
   return (
     <Card className="w-full h-full shadow-lg">
       <CardHeader className="text-center">
@@ -40,7 +53,7 @@ const Ranking: React.FC<RankingProps> = ({ ranking }) => {
                 <TableRow key={`${entry.playerName}-${entry.difficulty}-${index}`}>
                   <TableCell className="font-medium">{index + 1}º</TableCell>
                   <TableCell>{entry.playerName}</TableCell>
-                  <TableCell>{entry.difficulty === "easy" ? "Fácil" : "Difícil"}</TableCell>
+                  <TableCell>{getDifficultyText(entry.difficulty)}</TableCell>
                   <TableCell className="text-right">{entry.timeInSeconds.toFixed(2)}</TableCell>
                 </TableRow>
               ))}

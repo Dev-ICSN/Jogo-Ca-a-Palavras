@@ -119,7 +119,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
       timerIntervalRef.current = window.setInterval(() => {
         setElapsedTime((Date.now() - startTime) / 1000);
       }, 100);
-    } else if (foundWords.length === wordsToFind.length && startTime !== null) {
+    } else if (wordsToFind.length > 0 && foundWords.length === wordsToFind.length && startTime !== null) {
       const finalTime = (Date.now() - startTime) / 1000;
       setElapsedTime(finalTime);
       onGameEnd(finalTime);
@@ -236,9 +236,10 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
 
     if (foundIndex !== -1) {
       const foundWord = wordsToFind[foundIndex];
-      setFoundWords((prev) => [...prev, foundWord]);
-      showSuccess(`Parabéns! Você encontrou a palavra: ${foundWord}`);
-      setWordsToFind((prev) => prev.filter((w) => w !== foundWord));
+      if (!foundWords.includes(foundWord)) {
+        setFoundWords((prev) => [...prev, foundWord]);
+        showSuccess(`Parabéns! Você encontrou a palavra: ${foundWord}`);
+      }
     } else {
       showError("Palavra não encontrada.");
     }
@@ -271,7 +272,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
     }
   };
 
-  const gameCompleted = foundWords.length === wordsToFind.length;
+  const gameCompleted = wordsToFind.length > 0 && foundWords.length === wordsToFind.length;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-4">
@@ -330,9 +331,9 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
                 <Badge
                   key={index}
                   variant={isWordFound(word) ? "default" : "secondary"}
-                  className={`px-3 py-1 text-sm ${
+                  className={`px-3 py-1 text-sm transition-all ${
                     isWordFound(word)
-                      ? "bg-green-500 text-white"
+                      ? "bg-green-500 text-white line-through"
                       : "bg-gray-200 text-gray-700"
                   }`}
                 >
