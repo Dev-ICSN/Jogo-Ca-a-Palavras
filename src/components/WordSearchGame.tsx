@@ -57,8 +57,10 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
 
   const handleMouseEnter = (rowIndex: number, colIndex: number) => {
     if (isSelecting) {
-      const newSelectedCells = [...selectedCells, [rowIndex, colIndex]];
-      setSelectedCells(newSelectedCells);
+      const lastSelectedCell = selectedCells[selectedCells.length - 1];
+      if (lastSelectedCell && (lastSelectedCell[0] !== rowIndex || lastSelectedCell[1] !== colIndex)) {
+        setSelectedCells((prev) => [...prev, [rowIndex, colIndex]]);
+      }
     }
   };
 
@@ -76,51 +78,54 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
       return;
     }
 
-    // Sort cells to ensure consistent start/end for direction calculation
-    const sortedCells = [...selectedCells].sort((a, b) => {
-      if (a[0] !== b[0]) return a[0] - b[0];
-      return a[1] - b[1];
-    });
+    // Determine the direction from the first two selected cells
+    const [startRow, startCol] = selectedCells[0];
+    const [secondRow, secondCol] = selectedCells[1];
 
-    const startCell = sortedCells[0];
-    const endCell = sortedCells[sortedCells.length - 1];
+    const initialStepRow = secondRow - startRow;
+    const initialStepCol = secondCol - startCol;
 
-    const [startRow, startCol] = startCell;
-    const [endRow, endCol] = endCell;
-
-    const deltaRow = endRow - startRow;
-    const deltaCol = endCol - startCol;
-
-    let stepRow = 0;
-    let stepCol = 0;
-
-    if (deltaRow !== 0) {
-      stepRow = deltaRow / Math.abs(deltaRow);
-    }
-    if (deltaCol !== 0) {
-      stepCol = deltaCol / Math.abs(deltaCol);
-    }
-
-    // Check if the selection forms a straight line (horizontal, vertical, or diagonal)
-    const isHorizontal = stepRow === 0 && Math.abs(deltaCol) === selectedCells.length - 1;
-    const isVertical = stepCol === 0 && Math.abs(deltaRow) === selectedCells.length - 1;
-    const isDiagonal = Math.abs(stepRow) === 1 && Math.abs(stepCol) === 1 && Math.abs(deltaRow) === selectedCells.length - 1;
-
-    if (!isHorizontal && !isVertical && !isDiagonal) {
+    // Validate initial step: must be -1, 0, or 1 for both row and column, and not (0,0)
+    if (
+      Math.abs(initialStepRow) > 1 ||
+      Math.abs(initialStepCol) > 1 ||
+      (initialStepRow === 0 && initialStepCol === 0)
+    ) {
       showError("Seleção inválida. Por favor, selecione em linha reta.");
       return;
     }
 
     let selectedWord = "";
+    let isValidLine = true;
+
+    // Reconstruct the word and validate linearity
     for (let i = 0; i < selectedCells.length; i++) {
-      const r = startRow + i * stepRow;
-      const c = startCol + i * stepCol;
-      if (r >= 0 && r < rows && c >= 0 && c < cols) {
-        selectedWord += grid[r][c];
-      } else {
-        showError("Erro na seleção. Tente novamente.");
-        return;
+      const [currentRow, currentCol] = selectedCells[i];
+
+      // Check if the current cell follows the established linear path
+      if (i > 0) {
+        const [prevRow, prevCol] = selectedCells[i - 1];
+        if (
+          currentRow !== prevRow + initialStepRow ||
+          currentCol !== prevCol + initialStepCol
+        ) {
+          isValidLine = false;
+          break;
+        }
       }
+
+      // Add character to selected word
+      if (currentRow >= 0 && currentRow < rows && currentCol >= 0 && currentCol < cols) {
+        selectedWord += grid[currentRow][currentCol];
+      } else {
+        isValidLine = false; 
+        break;
+      }
+    }
+
+    if (!isValidLine) {
+      showError("Seleção inválida. Por favor, selecione em linha reta.");
+      return;
     }
 
     const normalizedSelectedWord = selectedWord.toUpperCase();
@@ -135,8 +140,8 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
       const foundWord = wordsToFind[foundIndex];
       setFoundWords((prev) => [...prev, foundWord]);
       showSuccess(`Parabéns! Você encontrou a palavra: ${foundWord}`);
-      // Remove found word from wordsToFind list
-      setWordsToFind((prev) => prev.filter((_, i) => i !== foundIndex));
+      // Remove found word from wordsToFind list by value
+      setWordsToFind((prev) => prev.filter((w) => w !== foundWord));
     } else {
       showError("Palavra não encontrada ou seleção incorreta.");
     }
