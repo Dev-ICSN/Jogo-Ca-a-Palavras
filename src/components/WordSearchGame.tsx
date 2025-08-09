@@ -58,6 +58,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
   const getWordsForThemeAndDifficulty = () => {
     let baseWords: string[];
     let count: number;
+    const MAX_WORD_LENGTH_SUPER_EASY = 7; // Define max length for super-easy words
 
     switch (theme) {
       case "kitchen":
@@ -74,6 +75,11 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
         break;
       default:
         baseWords = allWords;
+    }
+
+    // Filter words based on difficulty
+    if (difficulty === "super-easy") {
+      baseWords = baseWords.filter(word => word.length <= MAX_WORD_LENGTH_SUPER_EASY);
     }
 
     switch (difficulty) {
