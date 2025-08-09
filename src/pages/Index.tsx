@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import WelcomeScreen from "@/components/WelcomeScreen";
 import WordSearchGame from "@/components/WordSearchGame";
-import { getRanking, addRankingEntry, RankingEntry } from "@/utils/rankingStorage"; // Import ranking utilities
+import { getRanking, addRankingEntry, clearRanking, RankingEntry } from "@/utils/rankingStorage"; // Import clearRanking
 
 const Index = () => {
   const [gameStarted, setGameStarted] = useState(false);
@@ -44,10 +44,15 @@ const Index = () => {
     setRanking(getRanking()); // Ensure ranking is up-to-date when returning to welcome screen
   };
 
+  const handleClearRanking = () => {
+    clearRanking();
+    setRanking(getRanking()); // Update state to reflect cleared ranking
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       {!gameStarted ? (
-        <WelcomeScreen onStartGame={handleStartGame} ranking={ranking} />
+        <WelcomeScreen onStartGame={handleStartGame} ranking={ranking} onClearRanking={handleClearRanking} />
       ) : (
         <WordSearchGame
           playerName={playerName}

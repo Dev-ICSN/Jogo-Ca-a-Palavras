@@ -13,9 +13,10 @@ import { RankingEntry } from "@/utils/rankingStorage"; // Import RankingEntry ty
 interface WelcomeScreenProps {
   onStartGame: (playerName: string, difficulty: "easy" | "hard") => void;
   ranking: RankingEntry[]; // Add ranking prop
+  onClearRanking: () => void; // New prop for clearing ranking
 }
 
-const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking }) => {
+const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking, onClearRanking }) => {
   const [playerName, setPlayerName] = useState<string>("");
   const [difficulty, setDifficulty] = useState<"easy" | "hard">("easy"); // Default to easy
 
@@ -84,6 +85,12 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking }) =
         </CardContent>
       </Card>
       <Ranking ranking={ranking} /> {/* Display the Ranking component */}
+      <Button
+        onClick={onClearRanking}
+        className="mt-4 py-2 px-6 text-md bg-red-500 hover:bg-red-600 text-white rounded-md shadow-md transition-colors duration-200"
+      >
+        Resetar Ranking
+      </Button>
     </div>
   );
 };
