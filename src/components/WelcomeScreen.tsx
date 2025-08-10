@@ -12,6 +12,7 @@ import Ranking from "@/components/Ranking";
 import PrizeList from "@/components/PrizeList";
 import { RankingEntry } from "@/utils/rankingStorage";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface WelcomeScreenProps {
   onStartGame: (playerName: string, difficulty: "super-easy" | "easy" | "hard", theme: "kitchen" | "home" | "work" | "random") => void;
@@ -35,17 +36,20 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking, pri
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-4">
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-4 dark:from-slate-900 dark:to-slate-950">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold text-gray-800">Caça-Palavras</CardTitle>
-          <CardDescription className="text-gray-600 mt-2">
+          <CardTitle className="text-3xl font-bold">Caça-Palavras</CardTitle>
+          <CardDescription className="mt-2">
             Prepare-se para encontrar as palavras escondidas!
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="playerName" className="block text-sm font-medium text-gray-700">
+            <Label htmlFor="playerName">
               Digite seu nome:
             </Label>
             <Input
@@ -54,7 +58,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking, pri
               placeholder="Seu nome"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
                   handleStartGame();
@@ -63,7 +66,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking, pri
             />
           </div>
           <div className="space-y-2">
-            <Label className="block text-sm font-medium text-gray-700">
+            <Label>
               Selecione a dificuldade:
             </Label>
             <RadioGroup
@@ -86,11 +89,11 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking, pri
             </RadioGroup>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="theme-select" className="block text-sm font-medium text-gray-700">
+            <Label htmlFor="theme-select">
               Selecione o tema:
             </Label>
             <Select onValueChange={(value: "kitchen" | "home" | "work" | "random") => setTheme(value)} defaultValue="random">
-              <SelectTrigger id="theme-select" className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <SelectTrigger id="theme-select">
                 <SelectValue placeholder="Selecione um tema" />
               </SelectTrigger>
               <SelectContent>
@@ -103,7 +106,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking, pri
           </div>
           <Button
             onClick={handleStartGame}
-            className="w-full py-3 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-md transition-colors duration-200"
+            className="w-full py-3 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white"
           >
             Iniciar Jogo
           </Button>
@@ -118,14 +121,14 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartGame, ranking, pri
       <div className="flex gap-4 mt-4">
         <Link to="/prizes">
           <Button
-            className="py-2 px-6 text-md bg-green-500 hover:bg-green-600 text-white rounded-md shadow-md transition-colors duration-200"
+            className="py-2 px-6 text-md bg-green-500 hover:bg-green-600 text-white"
           >
             Cadastrar Prêmios
           </Button>
         </Link>
         <Button
           onClick={onClearRanking}
-          className="py-2 px-6 text-md bg-red-500 hover:bg-red-600 text-white rounded-md shadow-md transition-colors duration-200"
+          className="py-2 px-6 text-md bg-red-500 hover:bg-red-600 text-white"
         >
           Resetar Ranking
         </Button>

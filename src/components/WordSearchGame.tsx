@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { showSuccess, showError } from "@/utils/toast";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface WordSearchGameProps {
   playerName: string;
@@ -271,13 +272,16 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-4">
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-4 dark:from-slate-900 dark:to-slate-950">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <Card className="w-full max-w-4xl shadow-lg">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold text-gray-800">
+          <CardTitle className="text-3xl font-bold">
             Caça-Palavras - Nível {getDifficultyText(difficulty)} - Tema: {getThemeText(theme)}
           </CardTitle>
-          <p className="text-gray-600 mt-2">
+          <p className="text-muted-foreground mt-2">
             Olá, {playerName}! Encontre as palavras abaixo:
           </p>
           <p className="text-xl font-semibold text-blue-700 mt-2">
@@ -285,9 +289,9 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
           </p>
         </CardHeader>
         <CardContent className="flex flex-col lg:flex-row gap-6">
-          <div className="flex-grow grid-container overflow-auto p-2 bg-gray-50 rounded-md shadow-inner">
+          <div className="flex-grow grid-container overflow-auto p-2 bg-gray-50 dark:bg-slate-800 rounded-md shadow-inner">
             <div
-              className="grid border border-gray-300"
+              className="grid border border-gray-300 dark:border-slate-700"
               style={{
                 gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
               }}
@@ -301,11 +305,11 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
                 row.map((char, colIndex) => (
                   <div
                     key={`${rowIndex}-${colIndex}`}
-                    className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 border border-gray-200 text-lg font-semibold cursor-pointer transition-colors duration-100
+                    className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 border border-gray-200 dark:border-slate-700 text-lg font-semibold cursor-pointer transition-colors duration-100
                       ${
                         isCellSelected(rowIndex, colIndex)
-                          ? "bg-blue-300 text-white"
-                          : "bg-white hover:bg-gray-100"
+                          ? "bg-blue-400 dark:bg-blue-600 text-white"
+                          : "bg-white dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800"
                       }
                     `}
                     onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
@@ -318,8 +322,8 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
               )}
             </div>
           </div>
-          <div className="w-full lg:w-1/3 p-4 bg-white rounded-md shadow-md">
-            <h3 className="text-xl font-semibold mb-4 text-gray-800">
+          <div className="w-full lg:w-1/3 p-4 bg-white dark:bg-card rounded-md shadow-md">
+            <h3 className="text-xl font-semibold mb-4">
               Palavras para Encontrar ({foundWords.length}/{wordsToFind.length})
             </h3>
             <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto">
@@ -330,7 +334,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
                   className={`px-3 py-1 text-sm transition-all ${
                     isWordFound(word)
                       ? "bg-green-500 text-white line-through"
-                      : "bg-gray-200 text-gray-700"
+                      : ""
                   }`}
                 >
                   {word}
@@ -342,7 +346,7 @@ const WordSearchGame: React.FC<WordSearchGameProps> = ({
                 <p className="text-2xl font-bold text-green-600 mb-4">
                   Parabéns, você encontrou todas as palavras!
                 </p>
-                <p className="text-xl text-gray-700 mb-4">
+                <p className="text-xl mb-4">
                   Seu tempo: {elapsedTime.toFixed(2)} segundos
                 </p>
               </div>
