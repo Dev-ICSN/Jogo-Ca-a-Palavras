@@ -1,0 +1,20 @@
+import React from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+
+const AttendancePage: React.FC = () => {
+  return (
+    <div>
+      <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">Controle de Presença</h1>
+      <Card>
+        <CardHeader>
+          <CardTitle>Registro de Presença</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>A funcionalidade para registrar a presença dos alunos será implementada aqui.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default AttendancePage;

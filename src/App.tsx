@@ -1,29 +1,33 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import MainLayout from "./layouts/MainLayout";
+import DashboardPage from "./pages/DashboardPage";
+import StudentsPage from "./pages/StudentsPage";
+import ClassesPage from "./pages/ClassesPage";
+import SubjectsPage from "./pages/SubjectsPage";
+import ActivitiesPage from "./pages/ActivitiesPage";
+import FinancesPage from "./pages/FinancesPage";
+import AttendancePage from "./pages/AttendancePage";
 import NotFound from "./pages/NotFound";
-import Prizes from "./pages/Prizes";
-
-const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/prizes" element={<Prizes />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <>
+    <Sonner />
+    <BrowserRouter>
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/alunos" element={<StudentsPage />} />
+          <Route path="/turmas" element={<ClassesPage />} />
+          <Route path="/materias" element={<SubjectsPage />} />
+          <Route path="/atividades" element={<ActivitiesPage />} />
+          <Route path="/financas" element={<FinancesPage />} />
+          <Route path="/presenca" element={<AttendancePage />} />
+        </Route>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  </>
 );
 
 export default App;
